@@ -1,0 +1,26 @@
+{
+  "findings": ["ACL", "MCL", "Medial Meniscus", "Lateral Meniscus", "Medial OA", "Lateral OA", "PF OA", "Effusion", "Synovitis", "Baker's", "Contusion", "Fracture"],
+  "studies": [
+    {
+      "uid": "study-a",
+      "patient_id": "patient-a",
+      "split": "weak_train",
+      "targets": [0.9, 0.1, 0.8, 0.1, 0.1, 0.1, 0.1, 0.8, 0.1, 0.1, 0.1, 0.1],
+      "series": [{"path": "study-a/sagittal.npz", "protocol": 2, "sha256": "REPLACE_WITH_FILE_SHA256"}]
+    },
+    {
+      "uid": "study-b",
+      "patient_id": "patient-b",
+      "split": "weak_dev",
+      "targets": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+      "series": [{"path": "study-b/sagittal.npz", "protocol": 2, "sha256": "REPLACE_WITH_FILE_SHA256"}]
+    },
+    {
+      "uid": "study-c",
+      "patient_id": "patient-c",
+      "split": "weak_dev",
+      "targets": [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
+      "series": [{"path": "study-c/sagittal.npz", "protocol": 2, "sha256": "REPLACE_WITH_FILE_SHA256"}]
+    }
+  ]
+}
