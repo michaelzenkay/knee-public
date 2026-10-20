@@ -2,20 +2,23 @@
 
 MRI classification for twelve findings, cartilage/meniscus segmentation and
 ACL/MCL attachment localization. Developed using Kaggle knee MRI examinations,
-report-derived finding labels, reviewed masks and my own attachment-point
-annotations. Data, trained weights and the viewer are not included.
+report-derived finding labels, reviewed masks and my non-expert attachment-point
+annotations. Data and the viewer are not included. The evaluated finding
+classifier is available as a separate [checkpoint release](https://github.com/michaelzenkay/knee-public/releases/tag/v4-epoch10).
 
 ## Method
 
-The [finding classifier](src/knee_mri/model.py) uses DINOv2 small/14 patch tokens,
-finding-specific spatial queries, depth attention and sequence attention. It
-produces twelve sigmoid scores per examination. It receives MRI and acquisition
-geometry, not reports or anatomy-model features.
+The [finding classifier](src/knee_mri/model.py) uses DINOv2-small/14 to identify
+relevant regions within each slice, combines information across slices within
+each MRI series, and then combines across series to predict twelve findings for
+the examination. It receives MRI images and acquisition geometry; the separate
+anatomy model's outputs are not classifier inputs.
 
-[DICOM preprocessing](src/knee_mri/preprocessing.py) orders slices physically,
-retains rectangular images and all slices, and uses a bounded arctangent
-intensity transform. An optional frozen ACL localizer anchors a crop expanded
-to retain the tissue envelope. Unreliable anchors retain the full in-plane field.
+[DICOM preprocessing](src/knee_mri/preprocessing.py) orders slices physically
+and retains rectangular images and all slices. MRI intensities are rescaled using
+each volume's intensity percentiles, with arctan for extreme values. An optional
+frozen ACL localizer anchors a crop expanded
+to retain the tissue envelope. Unreliable anchors retain the full view.
 Acquisition-matrix metadata can reduce expanded reconstruction grids; inputs are
 padded to multiples of 14 for DINOv2.
 
@@ -29,6 +32,41 @@ not direct XYZ regression. The crop localizer is a separate frozen network.
 The demo adapter segments sagittal series at 256 pixels and localizes attachments
 at 192 pixels: ACL on sagittal, MCL on coronal with DICOM orientation/laterality.
 These anatomy outputs are separate from the classifier's twelve finding scores.
+
+## Evaluated checkpoint and MRNet baseline
+
+The [V4 epoch-10 release](https://github.com/michaelzenkay/knee-public/releases/tag/v4-epoch10)
+contains the classifier used for the exploratory MRNet baseline. Download
+`knee-v4-epoch10.zip` (91 MB) and verify it against the release's `SHA256SUMS`.
+The archive includes `selected.pt`, `dino_config.json`, a model card, aggregate
+metrics and plots, and validation/provenance records. All 323 tensors match the
+evaluated checkpoint exactly; local training metadata was removed, so the
+packaged file has a different checksum. The release was checked with source
+commit `20fe84c8a3e43ee5a10f8def6d531766cb308676`.
+
+The baseline used 120 MRNet validation/tuning exams, 360 volumes and 11,312
+slices. Original DICOM geometry was unavailable: the adapter assumed 0.625 mm
+pixels, 3.5 mm slice steps, fixed plane axes and sequence flags. It retained all
+released pixels and slices, used the V4 intensity transform, and bypassed the
+localizer, crop and resampling. No training or threshold tuning used this cohort.
+
+| Endpoint | ROC AUC | Average precision | Sensitivity at 0.5 | Specificity at 0.5 |
+| --- | ---: | ---: | ---: | ---: |
+| ACL tear vs ACL finding score | 0.840 | 0.783 | 0.241 | 0.955 |
+| Meniscus tear vs max-head proxy | 0.804 | 0.785 | 0.731 | 0.794 |
+
+The meniscus score is `max(Medial Meniscus, Lateral Meniscus)`, an exploratory
+proxy for MRNet's pooled label. There is no general-abnormality output. These are
+assumed-geometry validation/tuning results, not Stanford hidden-test results or
+clinical validation. The fixed 0.5 ACL threshold missed 41 of 54 positive exams;
+geometry sensitivity variants remain unevaluated.
+
+This release contains only the finding classifier. The anatomy and ACL crop
+localizer checkpoints are not included, so it does not reproduce the full native
+crop pipeline by itself. Images, reports, study labels and per-exam predictions
+are excluded. See the release's `MODEL_CARD.md` and `TERMS.md` for input,
+validation and licensing limits; the source license does not override dataset
+or upstream model terms.
 
 ## Install
 
