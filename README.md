@@ -68,15 +68,9 @@ are excluded. See the release's `MODEL_CARD.md` and `TERMS.md` for input,
 validation and licensing limits; the source license does not override dataset
 or upstream model terms.
 
-## Install
+## Requirements
 
-Requires Python 3.11+. Install a suitable PyTorch build first if you need CUDA.
-
-```bash
-python -m venv .venv
-# Activate .venv using your shell's activation command.
-python -m pip install .
-```
+Requires Python 3.11+ and PyTorch.
 
 ## Inference
 
